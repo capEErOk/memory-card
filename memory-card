@@ -1,0 +1,141 @@
+memory-card
+
+
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QButtonGroup, QHBoxLayout, QMessageBox,  QRadioButton, QPushButton, QGroupBox
+from random import randint, shuffle
+
+class Question():
+    def __init__(self, question, right_ans, wrong1, wrong2, wrong3):
+        self.question = question
+        self.right_ans = right_ans
+        self.wrong1 = wrong1
+        self.wrong2 = wrong2
+        self.wrong3 = wrong3
+
+question_list = list()
+question_list.append(Question("Государственный язык Бразилии?", "Португальский", "Английский", "Испанский", "Японский"))
+question_list.append(Question("Какого цвета нет на флаге России?", "Зеленый", "Белый", "Синия", "Красный"))
+question_list.append(Question("Национальная хижина якутов?", "Ураса", "Юрта", "Иглу","Хата"))
+question_list.append(Question("Кто постоянно срывает занятие в 18:30?", "Виктор", "Эмир", "Иван", "Тимур"))
+
+app = QApplication([])
+my_win = QWidget()
+my_win.setWindowTitle("Memory Card")
+my_win.resize(700,500)
+my_win.score = 0
+my_win.total = 0
+
+lb_question = QLabel("Столица Австралии")
+gr_box_1 = QGroupBox("Варианты ответов")
+rb_1 = QRadioButton("Сидней")
+rb_2 = QRadioButton("Киев")
+rb_3 = QRadioButton("Канббера")
+rb_4 = QRadioButton("Берн")
+btn = QPushButton("Проверить")
+
+RadioGroup = QButtonGroup()
+RadioGroup.addButton(rb_1)
+RadioGroup.addButton(rb_2)
+RadioGroup.addButton(rb_3)
+RadioGroup.addButton(rb_4)
+
+gr_v1 = QVBoxLayout()
+gr_v2 = QVBoxLayout()
+gr_h = QHBoxLayout()
+
+gr_v1.addWidget(rb_1, alignment=Qt.AlignCenter)
+gr_v1.addWidget(rb_2, alignment=Qt.AlignCenter)
+gr_v2.addWidget(rb_3, alignment=Qt.AlignCenter)
+gr_v2.addWidget(rb_4, alignment=Qt.AlignCenter)
+gr_h.addLayout(gr_v1)
+gr_h.addLayout(gr_v2)
+gr_box_1.setLayout(gr_h)
+
+gr_box_2 = QGroupBox("Результат теста")
+lb_result = QLabel("Прав ты или нет?")
+lb_correct = QLabel("Ответ будет тут")
+gr_box_2.hide()
+
+grb_line_2 = QVBoxLayout()
+grb_line_2.addWidget(lb_result, alignment=Qt.AlignCenter)
+grb_line_2.addWidget(lb_correct, alignment=Qt.AlignCenter)
+gr_box_2.setLayout(grb_line_2)
+
+h1_line = QHBoxLayout()
+h2_line = QHBoxLayout()
+v_main_line = QVBoxLayout()
+
+h1_line.addWidget(lb_question, alignment=Qt.AlignLeft)
+h2_line.addWidget(btn, alignment=Qt.AlignCenter)
+
+v_main_line.addLayout(h1_line)
+v_main_line.addWidget(gr_box_1)
+v_main_line.addWidget(gr_box_2)
+gr_box_2.hide()
+v_main_line.addLayout(h2_line)
+
+my_win.setLayout(v_main_line)
+my_win.show()
+
+answers = [rb_1, rb_2, rb_3, rb_4]
+
+def ask(q:Question):
+    shuffle(answers)
+    answers[0].setText(q.right_ans)
+    answers[1].setText(q.wrong1)
+    answers[2].setText(q.wrong2)
+    answers[3].setText(q.wrong3)
+    lb_question.setText(q.question)
+    lb_correct.setText("Правильный ответ " + q.right_ans)
+    show_question()
+
+def show_result():
+    gr_box_1.hide()
+    gr_box_2.show()
+    btn.setText("Следующий вопрос")
+
+def show_question():
+    gr_box_2.hide()
+    gr_box_1.show()
+    btn.setText("Ответить")
+    RadioGroup.setExclusive(False)
+    rb_1.setChecked(False)
+    rb_2.setChecked(False)
+    rb_3.setChecked(False)
+    rb_4.setChecked(False)
+    RadioGroup.setExclusive(True)
+    
+
+def check_answer():
+    if answers[0].isChecked():
+        show_correct("Правильно")
+        my_win.score += 1
+        print("Статистика \nВсего вопросов: " + str(my_win.total) + '\nПравильных ответов: ' + str(my_win.score))
+        print("Рейтинг: ", (my_win.score / my_win.total * 100), "%")
+    else:
+        if answers[1].isChecked() or answers[2].isChecked() or answers[3].isChecked():
+            show_correct("Неправильно!")
+            print("Рейтинг: ", (my_win.score / my_win.total * 100), "%")
+
+def show_correct(res):
+    lb_result.setText(res)
+    show_result()
+
+def next_question():
+    my_win.total += 1
+    print("Статистика \nВсего вопросов: " + str(my_win.total) + '\nПравильных ответов: ' + str(my_win.score))
+    cur_question = randint(0, len(question_list)-1)
+    question = question_list[cur_question]
+    ask(question)
+
+def click_Ok():
+    if btn.text() == "Ответить":
+        check_answer()
+    else:
+        next_question()
+
+next_question()
+
+btn.clicked.connect(click_Ok)
+app.exec_()
